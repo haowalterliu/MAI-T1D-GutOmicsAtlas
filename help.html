@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorials · GutOmicsAtlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M5 3h11a3 3 0 010 6H8a3 3 0 000 6h8a3 3 0 010 6H5"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">GutOmicsAtlas</span>
+      <span class="logo-sub">Multi-Omics · Human Gut</span>
+    </div>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <div class="nav-dd">
+      <span class="nav-dd-trigger">Single Cell Modality <svg class="nav-dd-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <div class="nav-dd-menu">
+        <a href="scrna.html#scrna">scRNA</a>
+        <a href="scrna.html#snatac">snATAC</a>
+      </div>
+    </div>
+    <div class="nav-dd">
+      <span class="nav-dd-trigger">Spatial Modality <svg class="nav-dd-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <div class="nav-dd-menu">
+        <a href="spatial-metabolomics.html#metabolomics">Spatial Metabolomics</a>
+        <a href="spatial-metabolomics.html#transcriptomics">Spatial Transcriptomics</a>
+      </div>
+    </div>
+    <div class="nav-divider"></div>
+    <a href="help.html" class="active">Help</a>
+    <a href="about.html" class="btn-nav">About</a>
+  </nav>
+</header>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-eyebrow"><span class="eyebrow-line"></span>Documentation</div>
+  <h1 class="page-h1">Tutorials</h1>
+  <p class="page-desc">Learn how to use each section of GutOmicsAtlas with step-by-step guides and a video walkthrough.</p>
+</div>
+
+<!-- VIDEO EMBED -->
+<div style="max-width:1200px; margin:0 auto; padding:32px 56px 48px;">
+  <div class="video-wrap">
+    <iframe src="https://www.youtube-nocookie.com/embed/F1Tz5PHCGhs" allowfullscreen title="GutOmicsAtlas Tutorial Video"></iframe>
+  </div>
+</div>
+
+<!-- ACCORDION TUTORIALS -->
+<div style="max-width:1200px; margin:0 auto; padding:0 56px 72px;">
+  <div class="accordion-list">
+
+    <!-- 1. Introduction -->
+    <div class="accordion-item" id="acc-1">
+      <button class="accordion-trigger" onclick="toggleAccordion('acc-1')">
+        <span class="accordion-title">1. Introduction — Navigation Overview</span>
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-body">
+        <p>The navigation bar is on the top, including the home page, scRNA page, snATAC page, Spatial Metabolomics page, Spatial Transcriptomics page, Help page, and About page. You can click the corresponding link to enter the page you want to visit.</p>
+        <br>
+        <p><strong>Home page:</strong> The main page of the website, which provides a brief introduction of the website and the database, and a chat box with our AI assistant.</p>
+        <br>
+        <p><strong>scRNA page:</strong> The page for you to visualize the expression of a single gene in epithelial cells or enteroendocrine cells, differential gene expression in different gut regions, and top marker gene expression in goblet cells.</p>
+        <br>
+        <p><strong>snATAC page:</strong> This page allows you to visualize the IGV plots of a single gene in all cell types or epithelial cells.</p>
+        <br>
+        <p><strong>Spatial Metabolomics page:</strong> This page displays differential detection of metabolite levels in fetal duodenum and colon tissues and allows users to visualize metabolite distribution.</p>
+        <br>
+        <p><strong>Spatial Transcriptomics page:</strong> This page displays differential distribution of genes in different regions of fetal duodenum and colon tissues (e.g. crypt versus villi).</p>
+        <br>
+        <p>There are also the Help page and About page to show the tutorials and basic information of this website.</p>
+      </div>
+    </div>
+
+    <!-- 2. scRNA -->
+    <div class="accordion-item" id="acc-2">
+      <button class="accordion-trigger" onclick="toggleAccordion('acc-2')">
+        <span class="accordion-title">2. scRNA — Single-Cell RNA Sequencing</span>
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-body">
+        <p>The page that enables you to visualize the expression of a single gene in epithelial cells or enteroendocrine cells. You can see the UMAP clustering of various cell types and the dot plot of characteristic marker genes of different cell types among epithelial cells or enteroendocrine cells. Additionally, a single gene can be entered in the query box to visualize the feature plot and violin plot of a single gene.</p>
+        <br>
+        <p><strong>Region comparison:</strong> This page shows the 3D volcano plot of the differential gene expression (DGE) analysis comparing the scRNA-seq data between the duodenum and colon tissues. Moreover, split violin plots are displayed to show the top duodenum and colon specific marker genes. You can also download the DEG list comparing duodenum and colon tissues in fetal and adult samples.</p>
+        <br>
+        <p><strong>Goblet cells:</strong> This page shows the MA plot of the top marker genes enriched in goblet cells compared to other epithelial cells. Split violin plots are displayed to show the top goblet cell marker genes. You can also download the marker list comparing goblet cells to other epithelial cell types.</p>
+      </div>
+    </div>
+
+    <!-- 3. snATAC -->
+    <div class="accordion-item" id="acc-3">
+      <button class="accordion-trigger" onclick="toggleAccordion('acc-3')">
+        <span class="accordion-title">3. snATAC — Single-Nucleus ATAC Sequencing</span>
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-body">
+        <p>This page allows you to visualize the accessibility of a single gene in all cell types or epithelial cells. You can see the UMAP clustering of various cell types and the dot plot of accessibility of gene loci close to characteristic marker genes of different cell types among all cell types or epithelial cells. Additionally, a single gene can be entered in the query box to visualize the IGV plot of a single gene.</p>
+      </div>
+    </div>
+
+    <!-- 4. Spatial Metabolomics -->
+    <div class="accordion-item" id="acc-4">
+      <button class="accordion-trigger" onclick="toggleAccordion('acc-4')">
+        <span class="accordion-title">4. Spatial Metabolomics — MALDI Imaging</span>
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-body">
+        <p>This page shows the heatmap comparing the Log₂(Fold Change (Duodenum/Colon)) of normalized metabolite levels of metabolites detected via MALDI imaging. You can click on individual metabolites to visualize the metabolite distribution in the fetal duodenum and colon tissues as well as quantification of the normalized metabolite levels in the fetal duodenum and colon tissues.</p>
+      </div>
+    </div>
+
+    <!-- 5. Spatial Transcriptomics -->
+    <div class="accordion-item" id="acc-5">
+      <button class="accordion-trigger" onclick="toggleAccordion('acc-5')">
+        <span class="accordion-title">5. Spatial Transcriptomics — Spatial Gene Expression</span>
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-body">
+        <p>This page displays the UMAP clustering of epithelial cell types in 17 and 20 week old fetal duodenum and colon tissues as well as the dot plot of characteristic marker genes used to identify different epithelial cell types. A drop down menu is provided with 422 genes. Individual genes can be clicked to visualize the expression and distribution of these genes across duodenum and colon tissues.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">GutOmicsAtlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Tutorials &amp; Documentation</span>
+  </div>
+</footer>
+<div class="footer-copyright">Copyright &copy; Chen lab at Weill Cornell Medicine 2024 All rights reserved.</div>
+
+<script>
+function toggleAccordion(id) {
+  var item = document.getElementById(id);
+  var isOpen = item.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.accordion-item').forEach(function(el) {
+    el.classList.remove('open');
+    el.querySelector('.accordion-icon').textContent = '+';
+  });
+  // Open clicked (if it was closed)
+  if (!isOpen) {
+    item.classList.add('open');
+    item.querySelector('.accordion-icon').textContent = '+';
+  }
+}
+</script>
+
+<!-- Browser modal -->
+<div id="bModal" class="bmodal-overlay" onclick="if(event.target===this)closeBModal()">
+  <div class="bmodal-box">
+    <div class="bmodal-bar">
+      <span class="bmodal-bar-title" id="bModalTitle"></span>
+      <button class="bmodal-close" onclick="closeBModal()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <iframe id="bModalFrame" class="bmodal-frame" src=""></iframe>
+  </div>
+</div>
+<script>
+function openBModal(src,title){document.getElementById('bModalTitle').textContent=title;document.getElementById('bModalFrame').src=src;document.getElementById('bModal').classList.add('open');document.body.style.overflow='hidden';}
+function closeBModal(){document.getElementById('bModal').classList.remove('open');document.getElementById('bModalFrame').src='';document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeBModal();});
+</script>
+</body>
+</html>

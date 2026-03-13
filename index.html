@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home · GutOmicsAtlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M5 3h11a3 3 0 010 6H8a3 3 0 000 6h8a3 3 0 010 6H5"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">GutOmicsAtlas</span>
+      <span class="logo-sub">Multi-Omics · Human Gut</span>
+    </div>
+  </a>
+
+  <nav>
+    <a href="index.html" class="active">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <div class="nav-dd">
+      <span class="nav-dd-trigger">Single Cell Modality <svg class="nav-dd-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <div class="nav-dd-menu">
+        <a href="scrna.html#scrna">scRNA</a>
+        <a href="scrna.html#snatac">snATAC</a>
+      </div>
+    </div>
+    <div class="nav-dd">
+      <span class="nav-dd-trigger">Spatial Modality <svg class="nav-dd-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <div class="nav-dd-menu">
+        <a href="spatial-metabolomics.html#metabolomics">Spatial Metabolomics</a>
+        <a href="spatial-metabolomics.html#transcriptomics">Spatial Transcriptomics</a>
+      </div>
+    </div>
+    <div class="nav-divider"></div>
+    <a href="help.html">Help</a>
+    <a href="about.html" class="btn-nav">About</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow"><span class="eyebrow-line"></span>Multi-Omics Research Platform</div>
+    <h1>Explore the <em>GutOmics</em><br>Atlas</h1>
+    <p class="hero-desc">
+      An AI-powered platform for exploring multi-omics data from human gut tissues. Integrates scRNA-seq, snATAC-seq, spatial metabolomics, and spatial transcriptomics from fetal and adult gut samples.
+    </p>
+    <div class="hero-actions">
+      <a href="chat.html" class="btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Launch Explorer
+      </a>
+      <a href="help.html" class="btn-outline">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documentation
+      </a>
+    </div>
+  </div>
+
+  <div class="stats-panel">
+    <div class="stats-header">
+      <span class="stats-header-title">Dataset Summary</span>
+      <span class="stats-header-tag">Multi-Omics · v1.8</span>
+    </div>
+    <div class="stats-body">
+      <div class="stat-row">
+        <div class="stat-left">
+          <span class="stat-label">Omics Modalities</span>
+          <span class="stat-hint">scRNA · snATAC · Spatial</span>
+        </div>
+        <span class="stat-num">4</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-left">
+          <span class="stat-label">Spatial Genes</span>
+          <span class="stat-hint">transcriptomics panel</span>
+        </div>
+        <span class="stat-num">422</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-left">
+          <span class="stat-label">Tissue Regions</span>
+          <span class="stat-hint">Duodenum · Colon</span>
+        </div>
+        <span class="stat-num">2</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-left">
+          <span class="stat-label">Development Stages</span>
+          <span class="stat-hint">Fetal 17wk · 20wk · Adult</span>
+        </div>
+        <span class="stat-num">3</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DATA MODULES -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-tag">Data Modules</span>
+    <div class="section-rule"></div>
+  </div>
+  <div class="stages-grid">
+    <div class="stage-card c-green">
+      <div class="stage-index">MODULE 01</div>
+      <div class="stage-title">scRNA-seq</div>
+      <div class="stage-desc">Single-cell RNA sequencing of fetal and adult gut epithelial and enteroendocrine cells with UMAP, dot plots, and region comparison.</div>
+      <span class="stage-pill"><span class="pill-dot"></span>Fetal + Adult</span>
+    </div>
+    <div class="stage-card c-teal">
+      <div class="stage-index">MODULE 02</div>
+      <div class="stage-title">snATAC-seq</div>
+      <div class="stage-desc">Single-nucleus ATAC sequencing profiling chromatin accessibility with IGV-style coverage plots across all gut cell types.</div>
+      <span class="stage-pill"><span class="pill-dot"></span>All cell types</span>
+    </div>
+    <div class="stage-card c-amber">
+      <div class="stage-index">MODULE 03</div>
+      <div class="stage-title">Spatial Metabolomics</div>
+      <div class="stage-desc">MALDI imaging of metabolite levels comparing fetal duodenum and colon with interactive heatmap and spatial distribution maps.</div>
+      <span class="stage-pill"><span class="pill-dot"></span>Duodenum · Colon</span>
+    </div>
+    <div class="stage-card c-purple">
+      <div class="stage-index">MODULE 04</div>
+      <div class="stage-title">Spatial Transcriptomics</div>
+      <div class="stage-desc">Spatial gene expression across 422 genes in 17 and 20-week fetal gut sections, with cell type reference maps.</div>
+      <span class="stage-pill"><span class="pill-dot"></span>422 genes</span>
+    </div>
+  </div>
+</div>
+
+<!-- PLATFORM CAPABILITIES -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-tag">Platform Capabilities</span>
+    <div class="section-rule"></div>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🧬</div>
+      <div class="feat-title">scRNA &amp; snATAC Browser</div>
+      <div class="feat-desc">Explore single-cell expression and chromatin accessibility across epithelial and enteroendocrine cell types with interactive UMAP and dot plots.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🤖</div>
+      <div class="feat-title">AI-Powered Analysis</div>
+      <div class="feat-desc">Chat with AI to explore GLKB (Genomic Literature Knowledge Base) and answer questions about gut biology and dataset findings.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🗺️</div>
+      <div class="feat-title">Spatial Data Visualization</div>
+      <div class="feat-desc">Query 422 genes or browse MALDI metabolomics data to see spatial expression and metabolite distribution across gut tissue sections.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Differential Expression</div>
+      <div class="feat-desc">MA plots and violin plots comparing gene expression between duodenum and colon, and across developmental stages from fetal to adult.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CITATION -->
+<div class="citation-box">
+  <div class="citation-inner">
+    <span class="citation-label">Dataset</span>
+    <span class="citation-text">GutOmicsAtlas · scRNA-seq · snATAC-seq · Spatial Metabolomics · Spatial Transcriptomics · Human Gut · Fetal &amp; Adult · Chen Laboratory · Weill Cornell Medicine</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">GutOmicsAtlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Multi-Omics Research Platform · v1.8</span>
+  </div>
+</footer>
+<div class="footer-copyright">Copyright &copy; Chen lab at Weill Cornell Medicine 2024 All rights reserved.</div>
+
+<!-- Browser modal -->
+<div id="bModal" class="bmodal-overlay" onclick="if(event.target===this)closeBModal()">
+  <div class="bmodal-box">
+    <div class="bmodal-bar">
+      <span class="bmodal-bar-title" id="bModalTitle"></span>
+      <button class="bmodal-close" onclick="closeBModal()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <iframe id="bModalFrame" class="bmodal-frame" src=""></iframe>
+  </div>
+</div>
+<script>
+function openBModal(src,title){document.getElementById('bModalTitle').textContent=title;document.getElementById('bModalFrame').src=src;document.getElementById('bModal').classList.add('open');document.body.style.overflow='hidden';}
+function closeBModal(){document.getElementById('bModal').classList.remove('open');document.getElementById('bModalFrame').src='';document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeBModal();});
+</script>
+</body>
+</html>

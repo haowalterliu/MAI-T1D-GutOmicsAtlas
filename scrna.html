@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Single-Cell Browser · GutOmicsAtlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+.viewer-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 56px 72px;
+}
+
+.viewer-main { min-width: 0; }
+
+.tabs-bar { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
+.tab-link { padding: 10px 20px; font-size: .82rem; font-weight: 500; color: var(--muted); cursor: pointer; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; background: none; font-family: 'Montserrat', sans-serif; transition: color .15s, border-color .15s; white-space: nowrap; }
+.tab-link:hover { color: var(--text); }
+.tab-link.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-link.hidden { display: none; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+/* Gene search row */
+.gene-search-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; }
+.field-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.field-label { font-size: .68rem; font-weight: 600; color: var(--light); letter-spacing: .6px; text-transform: uppercase; }
+.field-input { border: 1px solid var(--border2); border-radius: 6px; padding: 7px 12px; font-size: .82rem; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--bg); outline: none; width: 100%; transition: border-color .15s; }
+.field-input:focus { border-color: var(--accent); }
+
+.dl-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid var(--border2); border-radius: 6px; background: var(--surface); color: var(--muted); font-size: .78rem; font-weight: 500; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: border-color .15s, color .15s; text-decoration: none; }
+.dl-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Unified light-gray placeholder – no emoji */
+.chart-placeholder {
+  width: 100%;
+  height: 300px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.chart-ph-icon { width: 36px; height: 36px; color: #d1d5db; }
+.chart-ph-icon svg { width: 100%; height: 100%; }
+.chart-ph-text { font-size: .74rem; color: #9ca3af; font-family: 'JetBrains Mono', monospace; text-align: center; padding: 0 16px; }
+.chart-ph-hint { font-size: .67rem; color: #c4c9d4; font-family: 'JetBrains Mono', monospace; text-align: center; margin-top: -4px; }
+
+/* Progress bar inside placeholder */
+.ph-progress-wrap { width: 68%; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; }
+.ph-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 1s cubic-bezier(.4,0,.2,1); }
+
+/* Email dialog */
+.edialog-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,16,30,.45);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.edialog-overlay.open { display: flex; }
+.edialog-box {
+  background: white;
+  border-radius: 16px;
+  padding: 36px 32px 28px;
+  max-width: 400px;
+  width: 92%;
+  box-shadow: 0 24px 64px rgba(0,0,0,.18);
+  text-align: center;
+}
+.edialog-icon {
+  width: 48px; height: 48px;
+  background: var(--accent-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  color: var(--accent);
+}
+.edialog-title { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; font-family: 'Montserrat', sans-serif; }
+.edialog-desc { font-size: .82rem; color: var(--muted); line-height: 1.65; margin-bottom: 18px; font-family: 'Montserrat', sans-serif; }
+.edialog-prog-wrap { width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; margin-bottom: 20px; }
+.edialog-prog-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 58%; }
+.edialog-input { width: 100%; border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-size: .85rem; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--bg); outline: none; margin-bottom: 12px; box-sizing: border-box; transition: border-color .15s; }
+.edialog-input:focus { border-color: var(--accent); }
+.edialog-submit { width: 100%; padding: 11px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: .88rem; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; margin-bottom: 10px; transition: opacity .15s; }
+.edialog-submit:hover { opacity: .88; }
+.edialog-cancel { font-size: .78rem; color: var(--light); cursor: pointer; background: none; border: none; font-family: 'Montserrat', sans-serif; }
+.edialog-cancel:hover { color: var(--muted); }
+
+@media (max-width: 900px) {
+  .viewer-layout { padding: 24px; }
+  .two-col-grid { grid-template-columns: 1fr; }
+  .mode-switcher { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="scrna-header">
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M5 3h11a3 3 0 010 6H8a3 3 0 000 6h8a3 3 0 010 6H5"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">GutOmicsAtlas</span>
+      <span class="logo-sub">Multi-Omics · Human Gut</span>
+    </div>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <div class="nav-dd">
+      <span class="nav-dd-trigger active">Single Cell Modality <svg class="nav-dd-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <div class="nav-dd-menu">
+        <a href="#scrna" id="navScRNA" onclick="switchSCModality('scrna');return false;">scRNA</a>
+        <a href="#snatac" id="navSNATAC" onclick="switchSCModality('snatac');return false;">snATAC</a>
+      </div>
+    </div>
+    <div class="nav-dd">
+      <span class="nav-dd-trigger">Spatial Modality <svg class="nav-dd-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <div class="nav-dd-menu">
+        <a href="spatial-metabolomics.html#metabolomics">Spatial Metabolomics</a>
+        <a href="spatial-metabolomics.html#transcriptomics">Spatial Transcriptomics</a>
+      </div>
+    </div>
+    <div class="nav-divider"></div>
+    <a href="help.html">Help</a>
+    <a href="about.html" class="btn-nav">About</a>
+  </nav>
+</header>
+
+<!-- PAGE HERO -->
+<div class="page-hero" id="scrna-hero">
+  <div class="page-eyebrow"><span class="eyebrow-line"></span>Single-Cell Omics</div>
+  <h1 class="page-h1">Single-Cell Browser</h1>
+  <p class="page-desc">Explore gene expression (scRNA-seq) and chromatin accessibility (snATAC-seq) across gut cell types. Use the Single Cell Modality menu to switch between scRNA and snATAC views.</p>
+</div>
+
+<!-- VIEWER LAYOUT -->
+<div class="viewer-layout">
+  <div class="viewer-main">
+
+    <!-- ══ scRNA VIEW ══ -->
+    <div id="scrna-view">
+
+      <!-- Mode switcher pills -->
+      <div class="mode-switcher">
+        <div class="mode-pill-group" id="cellTypePills">
+          <button class="mode-pill active" onclick="setCellType('epithelial')">Epithelial</button>
+          <button class="mode-pill" onclick="setCellType('enteroendocrine')">Enteroendocrine</button>
+        </div>
+        <div class="mode-pill-group" id="stagePills">
+          <button class="mode-pill active" onclick="setStage('fetal')">Fetal</button>
+          <button class="mode-pill" onclick="setStage('adult')">Adult</button>
+        </div>
+      </div>
+
+      <div class="tabs-bar" id="scrna-tabs">
+        <button class="tab-link active" data-tab="scrna-overview" onclick="switchTab('scrna-overview')">Overview</button>
+        <button class="tab-link" data-tab="scrna-result" onclick="switchTab('scrna-result')">Result Chart</button>
+        <button class="tab-link" data-tab="scrna-region" onclick="switchTab('scrna-region')" id="tab-region">Region Comparison</button>
+        <button class="tab-link" data-tab="scrna-goblet" onclick="switchTab('scrna-goblet')" id="tab-goblet">Goblet Cells</button>
+      </div>
+
+      <!-- Overview -->
+      <div class="tab-pane active" id="pane-scrna-overview">
+        <div class="two-col-grid">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title">UMAP Clustering</div>
+            </div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                    <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                    <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                    <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="chart-ph-text" id="umap-text">UMAP · epithelial cell type clusters</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title" id="dotplot-title">Dot Plot — Marker Genes</div>
+            </div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                    <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                    <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                    <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="chart-ph-text" id="dotplot-text">Dot plot · marker gene expression</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Chart -->
+      <div class="tab-pane" id="pane-scrna-result">
+        <div class="gene-search-row">
+          <div class="field-group">
+            <span class="field-label">Gene Name</span>
+            <input class="field-input" type="text" id="geneInput" placeholder="e.g. LGR5, EPCAM, MUC2">
+          </div>
+          <button class="btn-primary" onclick="submitGeneQuery()" style="align-self:flex-end;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Search
+          </button>
+        </div>
+        <div id="geneEmpty">
+          <div class="two-col-grid">
+            <div class="chart-card">
+              <div class="chart-card-header"><div class="chart-title" id="empty-title1">Feature Plot</div></div>
+              <div class="chart-body">
+                <div class="chart-placeholder" id="ph-empty1">
+                  <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                  <div class="chart-ph-text">Search a gene above to view its feature plot</div>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header"><div class="chart-title" id="empty-title2">Violin Plot</div></div>
+              <div class="chart-body">
+                <div class="chart-placeholder" id="ph-empty2">
+                  <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                  <div class="chart-ph-text">Search a gene above to view its violin plot</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="geneResult" style="display:none;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <span class="section-tag" id="result-gene-label">Gene</span>
+            <div class="section-rule" style="flex:1;"></div>
+          </div>
+          <div class="two-col-grid">
+            <div class="chart-card">
+              <div class="chart-card-header"><div class="chart-title" id="result-title1">Feature Plot</div></div>
+              <div class="chart-body">
+                <div class="chart-placeholder">
+                  <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                  <div class="chart-ph-text" id="result-label1">Feature plot result</div>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header"><div class="chart-title" id="result-title2">Violin Plot</div></div>
+              <div class="chart-body">
+                <div class="chart-placeholder">
+                  <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                  <div class="chart-ph-text" id="result-label2">Violin plot result</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Region Comparison -->
+      <div class="tab-pane" id="pane-scrna-region">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+          <a class="dl-btn" href="#">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download DEG List (CSV)
+          </a>
+        </div>
+        <div class="two-col-grid">
+          <div class="chart-card">
+            <div class="chart-card-header"><div><div class="chart-title">MA Plot — Duodenum vs. Colon</div></div></div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                <div class="chart-ph-text">MA plot · Duodenum vs. Colon</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><div><div class="chart-title">MA Plot — Adult Duodenum vs. Colon</div></div></div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                <div class="chart-ph-text">MA plot · Adult regional comparison</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goblet Cells -->
+      <div class="tab-pane" id="pane-scrna-goblet">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+          <a class="dl-btn" href="#">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Marker List (CSV)
+          </a>
+        </div>
+        <div class="two-col-grid">
+          <div class="chart-card">
+            <div class="chart-card-header"><div><div class="chart-title">MA Plot — Goblet vs. Other Epithelial</div></div></div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                <div class="chart-ph-text">MA plot · Goblet cell markers</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><div><div class="chart-title">Violin Plot — Goblet Markers</div></div></div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                <div class="chart-ph-text">Violin plot · top goblet markers</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end scrna-view -->
+
+    <!-- ══ snATAC VIEW ══ -->
+    <div id="snatac-view" style="display:none;">
+
+      <!-- Mode switcher pills -->
+      <div class="mode-switcher">
+        <div class="mode-pill-group" id="atacCellTypePills">
+          <button class="mode-pill active" onclick="setATACCellType('all')">All Cell Types</button>
+          <button class="mode-pill" onclick="setATACCellType('epithelial')">Epithelial</button>
+        </div>
+        <div class="mode-pill-group" id="atacStagePills">
+          <button class="mode-pill active" onclick="setATACStage('fetal')">Fetal</button>
+          <button class="mode-pill" onclick="setATACStage('adult')">Adult</button>
+        </div>
+      </div>
+
+      <div class="tabs-bar">
+        <button class="tab-link active" data-tab="atac-overview" onclick="switchTab('atac-overview')">Overview</button>
+        <button class="tab-link" data-tab="atac-result" onclick="switchTab('atac-result')">Result Chart</button>
+      </div>
+
+      <!-- snATAC Overview -->
+      <div class="tab-pane active" id="pane-atac-overview">
+        <div class="two-col-grid">
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-title">UMAP — Chromatin Accessibility</div></div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                <div class="chart-ph-text">UMAP · chromatin accessibility clusters</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-title">Dot Plot — Gene Activity (Signac)</div></div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                <div class="chart-ph-text">Gene activity dot plot · Signac</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- snATAC Result Chart -->
+      <div class="tab-pane" id="pane-atac-result">
+        <div class="gene-search-row">
+          <div class="field-group">
+            <span class="field-label">Gene Name</span>
+            <input class="field-input" type="text" id="atacGeneInput" placeholder="e.g. LGR5, EPCAM, MUC2">
+          </div>
+          <button class="btn-primary" onclick="submitATACQuery()" style="align-self:flex-end;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Search
+          </button>
+        </div>
+        <div class="two-col-grid">
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-title">Coverage Plot</div></div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                <div class="chart-ph-text">Search a gene above to view its coverage plot</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-title">UMAP Reference</div></div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>
+                <div class="chart-ph-text">Search a gene above to view UMAP reference</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end snatac-view -->
+
+  </div><!-- end viewer-main -->
+</div><!-- end viewer-layout -->
+
+<!-- FOOTER -->
+<footer id="scrna-footer">
+  <div class="footer-left">
+    <span class="footer-logo">GutOmicsAtlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Single-Cell Browser · scRNA &amp; snATAC</span>
+  </div>
+</footer>
+<div class="footer-copyright" id="scrna-footer-copy">Copyright &copy; Chen lab at Weill Cornell Medicine 2024 All rights reserved.</div>
+
+<!-- Email dialog -->
+<div class="edialog-overlay" id="edOverlay" onclick="if(event.target===this)closeEDialog()">
+  <div class="edialog-box">
+    <div class="edialog-icon">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    </div>
+    <div class="edialog-title">This will take some time</div>
+    <div class="edialog-desc">Please leave your email and we will notify you when your results are ready.</div>
+    <div class="edialog-prog-wrap"><div class="edialog-prog-fill"></div></div>
+    <input class="edialog-input" type="email" id="edEmailInput" placeholder="your@email.com">
+    <button class="edialog-submit" onclick="submitEdEmail()">Notify me</button>
+    <button class="edialog-cancel" onclick="closeEDialog()">No thanks, I'll wait</button>
+  </div>
+</div>
+
+<!-- Browser modal -->
+<div id="bModal" class="bmodal-overlay" onclick="if(event.target===this)closeBModal()">
+  <div class="bmodal-box">
+    <div class="bmodal-bar">
+      <span class="bmodal-bar-title" id="bModalTitle"></span>
+      <button class="bmodal-close" onclick="closeBModal()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <iframe id="bModalFrame" class="bmodal-frame" src=""></iframe>
+  </div>
+</div>
+
+<script>
+// ── Iframe mode: hide chrome when embedded ──────────────
+if (window.self !== window.top) {
+  document.addEventListener('DOMContentLoaded', function() {
+    ['scrna-header','scrna-hero','scrna-footer','scrna-footer-copy'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    var vl = document.querySelector('.viewer-layout'); if (vl) vl.style.paddingTop = '20px';
+  });
+}
+
+// ── Browser modal ───────────────────────────────────────
+function openBModal(src, title) {
+  document.getElementById('bModalTitle').textContent = title;
+  document.getElementById('bModalFrame').src = src;
+  document.getElementById('bModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeBModal() {
+  document.getElementById('bModal').classList.remove('open');
+  document.getElementById('bModalFrame').src = '';
+  document.body.style.overflow = '';
+}
+
+// ── Tab switching ───────────────────────────────────────
+function switchTab(name) {
+  // Only switch tabs within the active modality view
+  var prefix = document.getElementById('scrna-view').style.display !== 'none' ? 'scrna' : 'atac';
+  if (name.indexOf('-') === -1) name = prefix + '-' + name;
+  document.querySelectorAll('.tab-link').forEach(function(b) { b.classList.toggle('active', b.dataset.tab === name); });
+  document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.toggle('active', p.id === 'pane-' + name); });
+}
+
+// ── SC Modality switching ───────────────────────────────
+function switchSCModality(mod) {
+  window.location.hash = mod;
+  var isSCRNA = mod === 'scrna';
+  document.getElementById('scrna-view').style.display = isSCRNA ? '' : 'none';
+  document.getElementById('snatac-view').style.display = isSCRNA ? 'none' : '';
+  var navScRNA = document.getElementById('navScRNA');
+  var navSNATAC = document.getElementById('navSNATAC');
+  if (navScRNA) navScRNA.classList.toggle('active', isSCRNA);
+  if (navSNATAC) navSNATAC.classList.toggle('active', !isSCRNA);
+}
+
+// ── Cell type pill (scRNA) ──────────────────────────────
+var currentCellType = 'epithelial';
+function setCellType(type) {
+  currentCellType = type;
+  document.querySelectorAll('#cellTypePills .mode-pill').forEach(function(btn) {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().indexOf(type) > -1);
+  });
+  var isEpi = type === 'epithelial';
+  document.getElementById('umap-text').textContent = 'UMAP · ' + (isEpi ? 'epithelial' : 'enteroendocrine') + ' cell type clusters';
+  document.getElementById('tab-region').classList.toggle('hidden', !isEpi);
+  document.getElementById('tab-goblet').classList.toggle('hidden', !isEpi);
+  switchTab('scrna-overview');
+  resetGeneState();
+}
+
+// ── Stage pill (scRNA) ──────────────────────────────────
+var currentStage = 'fetal';
+function setStage(stage) {
+  currentStage = stage;
+  document.querySelectorAll('#stagePills .mode-pill').forEach(function(btn) {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === stage);
+  });
+  switchTab('scrna-overview');
+  resetGeneState();
+}
+
+// ── Cell type pill (snATAC) ─────────────────────────────
+function setATACCellType(type) {
+  document.querySelectorAll('#atacCellTypePills .mode-pill').forEach(function(btn) {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().replace(' ','') === type.replace(' ','') || (type === 'all' && btn.textContent === 'All Cell Types'));
+  });
+}
+
+// ── Stage pill (snATAC) ─────────────────────────────────
+function setATACStage(stage) {
+  document.querySelectorAll('#atacStagePills .mode-pill').forEach(function(btn) {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === stage);
+  });
+}
+
+// ── Gene query + progress + email dialog ───────────────
+var _progTimer = null;
+var SCATTER_HTML = '<div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/></svg></div>';
+
+function submitGeneQuery() {
+  var gene = document.getElementById('geneInput').value.trim().toUpperCase();
+  if (!gene) {
+    var inp = document.getElementById('geneInput');
+    inp.style.borderColor = 'var(--accent)'; inp.focus();
+    setTimeout(function() { inp.style.borderColor = ''; }, 1400); return;
+  }
+  setProgressState('ph-empty1'); setProgressState('ph-empty2');
+  clearTimeout(_progTimer);
+  _progTimer = setTimeout(function() {
+    document.getElementById('edOverlay').dataset.gene = gene;
+    document.getElementById('edOverlay').dataset.type = 'scrna';
+    document.getElementById('edOverlay').classList.add('open');
+  }, 800);
+}
+
+function submitATACQuery() {
+  var gene = document.getElementById('atacGeneInput').value.trim().toUpperCase();
+  if (!gene) {
+    var inp = document.getElementById('atacGeneInput');
+    inp.style.borderColor = 'var(--accent)'; inp.focus();
+    setTimeout(function() { inp.style.borderColor = ''; }, 1400); return;
+  }
+  document.getElementById('edOverlay').dataset.gene = gene;
+  document.getElementById('edOverlay').dataset.type = 'snatac';
+  document.getElementById('edOverlay').classList.add('open');
+}
+
+function setProgressState(id) {
+  var ph = document.getElementById(id); if (!ph) return;
+  ph.innerHTML = '<div class="ph-progress-wrap"><div class="ph-progress-fill" id="' + id + '-bar"></div></div><div class="chart-ph-text">Computing results…</div>';
+  requestAnimationFrame(function() { requestAnimationFrame(function() {
+    var bar = document.getElementById(id + '-bar'); if (bar) bar.style.width = '58%';
+  }); });
+}
+
+function submitEdEmail() {
+  var gene = document.getElementById('edOverlay').dataset.gene || '';
+  closeEDialog();
+  if (gene) showGeneResult(gene);
+}
+function closeEDialog() {
+  document.getElementById('edOverlay').classList.remove('open');
+  resetGeneState();
+}
+function showGeneResult(gene) {
+  document.getElementById('result-gene-label').textContent = gene;
+  document.getElementById('result-title1').textContent = 'Feature Plot — ' + gene;
+  document.getElementById('result-title2').textContent = 'Violin Plot — ' + gene;
+  document.getElementById('result-label1').textContent = gene + ' feature plot result';
+  document.getElementById('result-label2').textContent = gene + ' violin plot result';
+  document.getElementById('geneEmpty').style.display = 'none';
+  document.getElementById('geneResult').style.display = 'block';
+}
+function resetGeneState() {
+  clearTimeout(_progTimer);
+  var geneEmpty = document.getElementById('geneEmpty');
+  var geneResult = document.getElementById('geneResult');
+  if (geneEmpty) geneEmpty.style.display = '';
+  if (geneResult) geneResult.style.display = 'none';
+  var ph1 = document.getElementById('ph-empty1');
+  var ph2 = document.getElementById('ph-empty2');
+  if (ph1) ph1.innerHTML = SCATTER_HTML + '<div class="chart-ph-text">Search a gene above to view its feature plot</div>';
+  if (ph2) ph2.innerHTML = SCATTER_HTML + '<div class="chart-ph-text">Search a gene above to view its violin plot</div>';
+}
+
+// ── Escape key ──────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeBModal(); closeEDialog(); }
+});
+
+// ── Init ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  var hash = window.location.hash.replace('#', '');
+  switchSCModality(hash === 'snatac' ? 'snatac' : 'scrna');
+  // Show Region Comparison and Goblet tabs for epithelial by default
+  document.getElementById('tab-region').classList.remove('hidden');
+  document.getElementById('tab-goblet').classList.remove('hidden');
+});
+</script>
+</body>
+</html>

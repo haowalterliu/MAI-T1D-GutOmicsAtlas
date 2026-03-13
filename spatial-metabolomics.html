@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spatial Browser · GutOmicsAtlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+/* ── Shared viewer layout ── */
+.viewer-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 56px 72px;
+}
+.left-col {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 72px;
+  align-self: start;
+  border-right: 1px solid var(--border);
+  padding-right: 28px;
+  margin-right: 32px;
+}
+.ctrl-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ctrl-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  background: var(--surface2);
+}
+.ctrl-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.ctrl-section:last-child { border-bottom: none; }
+.ctrl-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--light);
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.ctrl-select {
+  width: 100%;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  font-family: 'Montserrat', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  cursor: pointer;
+}
+.ctrl-select:focus { border-color: var(--accent); }
+.ctrl-apply-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  font-family: 'Montserrat', sans-serif;
+}
+.ctrl-apply-btn:hover { opacity: 0.88; }
+
+/* ── Tabs ── */
+.viewer-main { min-width: 0; }
+.tabs-bar {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+}
+.tab-link {
+  padding: 10px 20px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: none;
+  font-family: 'Montserrat', sans-serif;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.tab-link:hover { color: var(--text); }
+.tab-link.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-link.hidden { display: none; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Two-col grid ── */
+.two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ── Metabolomics-specific ── */
+.metabo-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Heatmap left column */
+.heatmap-col { display: flex; flex-direction: column; min-width: 0; }
+
+.zoom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  position: sticky;
+  top: 72px;
+  background: var(--bg);
+  padding: 8px 0;
+  z-index: 10;
+}
+.zoom-btn-sq {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: all 0.15s;
+  font-weight: 700;
+  line-height: 1;
+}
+.zoom-btn-sq:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+.heatmap-scroll {
+  max-height: 580px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.heatmap-scroll::-webkit-scrollbar { width: 6px; }
+.heatmap-scroll::-webkit-scrollbar-track { background: var(--bg); }
+.heatmap-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.hm-header-row {
+  display: grid;
+  grid-template-columns: 160px repeat(3, 1fr);
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.hm-header-cell {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.hm-header-cell:first-child { font-family: 'Montserrat', sans-serif; }
+
+.hm-row {
+  display: grid;
+  grid-template-columns: 160px repeat(3, 1fr);
+  padding: 0 14px;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.hm-row:last-child { border-bottom: none; }
+.hm-row:hover { background: var(--surface2); }
+.hm-row.selected { background: var(--accent-light); }
+
+.hm-name {
+  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+  padding: 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hm-cell {
+  padding: 4px 6px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.hm-bar {
+  width: 100%;
+  border-radius: 4px;
+  opacity: 0.85;
+}
+
+/* Detail panel (fixed right) */
+.detail-col {
+  position: sticky;
+  top: 72px;
+  align-self: start;
+}
+.detail-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.detail-card-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+}
+.detail-card-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+.detail-card-body { padding: 18px; }
+
+.detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 20px;
+  text-align: center;
+}
+.detail-empty-icon { font-size: 2.5rem; opacity: 0.3; }
+.detail-empty-text { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+.detail-metabolite-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.detail-mz {
+  font-size: 0.72rem;
+  color: var(--light);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 18px;
+}
+.detail-img-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.detail-img-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.detail-img-placeholder {
+  width: 100%;
+  height: 140px;
+  background: linear-gradient(135deg, var(--surface2) 0%, var(--bg) 100%);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-direction: column;
+  border: 1px dashed var(--border2);
+}
+
+/* ── Spatial Transcriptomics (maps) ── */
+.spatial-map-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.spatial-map-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.spatial-map-placeholder {
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tissue-label {
+  font-size: 0.7rem;
+  color: var(--light);
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Gene Expression result card */
+.gene-result-card {
+  background: var(--surface);
+  border: 1px solid var(--accent-border);
+  border-top: 3px solid var(--accent);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.gene-result-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.gene-result-title {
+  font-size: 1rem;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--navy);
+}
+.gene-result-body {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.gene-map-wrap { display: flex; flex-direction: column; gap: 6px; }
+.gene-map-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+.gene-map-ph {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.gene-map-ph.duodenum {
+  background: linear-gradient(135deg, #fff1f2 0%, #fecaca 100%);
+}
+.gene-map-ph.colon {
+  background: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 100%);
+}
+
+/* Gene search row */
+.gene-search-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.field-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.field-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--light);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.field-input {
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  font-family: 'Montserrat', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.field-input:focus { border-color: var(--accent); }
+
+/* gene autocomplete */
+.dropdown-wrap { position: relative; }
+.gene-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+}
+.gene-dropdown.open { display: block; }
+.dropdown-item {
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.dropdown-item:hover { background: var(--accent-light); color: var(--accent); }
+
+@media (max-width: 900px) {
+  .viewer-layout { grid-template-columns: 1fr; padding: 24px; }
+  .left-col { position: static; border-right: none; padding-right: 0; margin-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px; }
+  .two-col-grid { grid-template-columns: 1fr; }
+  .metabo-layout { grid-template-columns: 1fr; }
+  .detail-col { position: static; }
+  .gene-result-body { grid-template-columns: 1fr; }
+}
+/* Light gray chart placeholder overrides */
+.chart-ph-icon {
+  width: 36px; height: 36px;
+  color: #d1d5db;
+  margin-bottom: 4px;
+}
+.chart-ph-icon svg { width: 100%; height: 100%; }
+.chart-placeholder { background: #f3f4f6 !important; border: none !important; }
+.spatial-map-placeholder-gray {
+  width: 100%; height: 300px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #d1d5db;
+}
+.spatial-map-placeholder-gray svg { width: 36px; height: 36px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M5 3h11a3 3 0 010 6H8a3 3 0 000 6h8a3 3 0 010 6H5"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">GutOmicsAtlas</span>
+      <span class="logo-sub">Multi-Omics · Human Gut</span>
+    </div>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <div class="nav-dd">
+      <span class="nav-dd-trigger">Single Cell Modality <svg class="nav-dd-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <div class="nav-dd-menu">
+        <a href="scrna.html#scrna">scRNA</a>
+        <a href="scrna.html#snatac">snATAC</a>
+      </div>
+    </div>
+    <div class="nav-dd">
+      <span class="nav-dd-trigger active">Spatial Modality <svg class="nav-dd-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      <div class="nav-dd-menu">
+        <a href="#metabolomics" id="navMetabo" onclick="switchModality('metabolomics');return false;">Spatial Metabolomics</a>
+        <a href="#transcriptomics" id="navTx" onclick="switchModality('transcriptomics');return false;">Spatial Transcriptomics</a>
+      </div>
+    </div>
+    <div class="nav-divider"></div>
+    <a href="help.html">Help</a>
+    <a href="about.html" class="btn-nav">About</a>
+  </nav>
+</header>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-eyebrow"><span class="eyebrow-line"></span>Spatial Omics</div>
+  <h1 class="page-h1">Spatial Browser</h1>
+  <p class="page-desc">Explore metabolite spatial distribution (MALDI imaging) and spatial gene expression (Visium) across fetal gut tissue sections. Use the Spatial Modality menu to switch between Spatial Metabolomics and Spatial Transcriptomics.</p>
+</div>
+
+<!-- VIEWER LAYOUT -->
+<div class="viewer-layout">
+
+  <!-- Main content -->
+  <div class="viewer-main">
+
+    <!-- ══ SPATIAL METABOLOMICS view ══ -->
+    <div id="metabo-view">
+      <div class="metabo-layout">
+
+        <!-- Left: zoom + scrollable heatmap -->
+        <div class="heatmap-col">
+          <div class="zoom-row">
+            <button class="zoom-btn-sq" onclick="adjustZoom(1)" title="Zoom in">+</button>
+            <button class="zoom-btn-sq" onclick="adjustZoom(-1)" title="Zoom out">−</button>
+            <span style="font-size:0.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-left:4px;">Metabolite Heatmap — Log₂FC (Duodenum/Colon)</span>
+          </div>
+          <div class="heatmap-scroll" id="heatmapScroll">
+            <div class="hm-header-row">
+              <div class="hm-header-cell">Metabolite</div>
+              <div class="hm-header-cell">Sample 1</div>
+              <div class="hm-header-cell">Sample 2</div>
+              <div class="hm-header-cell">Sample 3</div>
+            </div>
+            <div id="heatmapBody"></div>
+          </div>
+        </div>
+
+        <!-- Right: fixed detail panel -->
+        <div class="detail-col">
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <span class="detail-card-title">Metabolite Detail</span>
+              </div>
+            <div class="detail-card-body" id="detailBody">
+              <div class="detail-empty">
+                <div class="detail-empty-icon">🧪</div>
+                <div class="detail-empty-text">Click a metabolite in the heatmap to view its spatial distribution and quantification.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end metabo-layout -->
+    </div><!-- end metabo-view -->
+
+    <!-- ══ SPATIAL TRANSCRIPTOMICS view ══ -->
+    <div id="tx-view" style="display:none;">
+
+      <div class="tabs-bar">
+        <button class="tab-link active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+        <button class="tab-link" data-tab="spatial-area" onclick="switchTab('spatial-area')">Spatial Area</button>
+        <button class="tab-link" data-tab="gene-expr" onclick="switchTab('gene-expr')">Gene Expression</button>
+      </div>
+
+      <!-- Tab: Overview -->
+      <div class="tab-pane active" id="pane-overview">
+        <div class="two-col-grid">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title">UMAP — All Cells</div>
+            </div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                    <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                    <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                    <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="chart-placeholder-text">UMAP · spatial transcriptomics clusters</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title">Dot Plot — Marker Genes</div>
+            </div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                    <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                    <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                    <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="chart-placeholder-text">Dot plot · fixed marker gene panel</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Spatial Area -->
+      <div class="tab-pane" id="pane-spatial-area">
+        <div class="two-col-grid">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title">Duodenum — Cell Distribution</div>
+            </div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                    <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                    <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                    <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="chart-placeholder-text">Spatial cell distribution · Duodenum</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title">Colon — Cell Distribution</div>
+            </div>
+            <div class="chart-body">
+              <div class="chart-placeholder">
+                <div class="chart-ph-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                    <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                    <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                    <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="chart-placeholder-text">Spatial cell distribution · Colon</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Gene Expression -->
+      <div class="tab-pane" id="pane-gene-expr">
+
+        <!-- Full-width search -->
+        <div class="gene-search-row">
+          <div class="field-group dropdown-wrap">
+            <span class="field-label">Gene Name</span>
+            <input class="field-input" type="text" id="geneSearch" placeholder="Search 422 genes… e.g. LGR5"
+                   oninput="filterGenes()" onfocus="openDropdown()" onblur="closeDropdownDelay()">
+            <div class="gene-dropdown" id="geneDropdown"></div>
+          </div>
+          <button class="btn-primary" onclick="applyGeneSearch()" style="align-self:flex-end;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Search
+          </button>
+        </div>
+
+        <!-- Empty state -->
+        <div id="txGeneEmpty">
+          <div class="chart-placeholder" style="margin-top:8px;">
+            <div class="chart-ph-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="chart-placeholder-text">Search a gene above to view its spatial expression in Duodenum and Colon</div>
+          </div>
+        </div>
+
+        <!-- Result card (shown after gene selected) -->
+        <div id="txGeneResult" style="display:none;">
+          <div class="two-col-grid">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div class="chart-title" id="geneTitleDuodenum">Feature Plot — Duodenum</div>
+              </div>
+              <div class="chart-body">
+                <div class="chart-placeholder">
+                  <div class="chart-ph-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                      <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                      <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                      <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                      <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <div class="chart-ph-text" id="geneLabelDuodenum">Spatial expression · Duodenum</div>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div class="chart-title" id="geneTitleColon">Feature Plot — Colon</div>
+              </div>
+              <div class="chart-body">
+                <div class="chart-placeholder">
+                  <div class="chart-ph-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                      <circle cx="5" cy="18" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/>
+                      <circle cx="13" cy="15" r="1.2" fill="currentColor"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/>
+                      <circle cx="7" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/>
+                      <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <div class="chart-ph-text" id="geneLabelColon">Spatial expression · Colon</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end pane-gene-expr -->
+
+    </div><!-- end tx-view -->
+
+  </div><!-- end viewer-main -->
+</div><!-- end viewer-layout -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">GutOmicsAtlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Spatial Browser · Metabolomics &amp; Transcriptomics</span>
+  </div>
+</footer>
+<div class="footer-copyright">Copyright &copy; Chen lab at Weill Cornell Medicine 2024 All rights reserved.</div>
+
+<script>
+// ── Metabolomics data ───────────────────────────────
+var metabolites = [
+  { name:'PC 36:4',          mz:'782.57', vals:[1.8,2.1,1.9] },
+  { name:'PE 36:2',          mz:'740.53', vals:[1.4,1.6,1.5] },
+  { name:'SM 34:1',          mz:'703.57', vals:[0.9,1.1,0.8] },
+  { name:'Cholesterol',      mz:'369.35', vals:[0.3,0.5,0.4] },
+  { name:'LPC 18:2',         mz:'520.34', vals:[-0.2,-0.1,-0.3] },
+  { name:'TG 54:3',          mz:'908.81', vals:[-0.8,-0.6,-0.9] },
+  { name:'PC 34:1',          mz:'760.59', vals:[2.3,2.5,2.2] },
+  { name:'PE 38:4',          mz:'766.54', vals:[1.1,1.3,1.0] },
+  { name:'DG 36:2',          mz:'635.56', vals:[-1.2,-1.0,-1.4] },
+  { name:'Ceramide d18:1',   mz:'538.52', vals:[0.7,0.9,0.6] },
+  { name:'PC 38:4',          mz:'808.58', vals:[1.6,1.8,1.7] },
+  { name:'LPE 18:1',         mz:'480.31', vals:[-0.5,-0.4,-0.6] },
+  { name:'PS 36:1',          mz:'812.55', vals:[-1.8,-1.6,-1.9] },
+  { name:'PI 36:2',          mz:'861.55', vals:[-2.1,-1.9,-2.2] },
+  { name:'Sphingosine',      mz:'300.28', vals:[0.4,0.6,0.5] },
+  { name:'LPC 20:4',         mz:'544.34', vals:[0.2,0.3,0.1] },
+  { name:'TG 52:2',          mz:'884.80', vals:[-1.5,-1.3,-1.6] },
+  { name:'PC 32:0',          mz:'734.56', vals:[1.0,1.2,0.9] },
+  { name:'Arachidonic acid', mz:'303.23', vals:[2.0,2.2,1.8] },
+  { name:'Oleic acid',       mz:'281.25', vals:[-0.9,-0.7,-1.1] },
+];
+
+function valToColor(v) {
+  if (v >= 2.0)  return '#de3341';
+  if (v >= 1.2)  return '#fb7185';
+  if (v >= 0.4)  return '#fca5a5';
+  if (v >= -0.4) return '#e5e7eb';
+  if (v >= -1.2) return '#bfdbfe';
+  if (v >= -2.0) return '#60a5fa';
+  return '#1d4ed8';
+}
+
+var rowHeight = 36;
+var selectedRow = null;
+
+function adjustZoom(dir) {
+  rowHeight = Math.max(24, Math.min(64, rowHeight + dir * 6));
+  renderHeatmap();
+}
+
+function renderHeatmap() {
+  var body = document.getElementById('heatmapBody');
+  body.innerHTML = '';
+  metabolites.forEach(function(m, idx) {
+    var row = document.createElement('div');
+    row.className = 'hm-row' + (selectedRow === idx ? ' selected' : '');
+    row.style.height = rowHeight + 'px';
+    row.onclick = function() { selectMetabolite(idx); };
+
+    var nameCell = document.createElement('div');
+    nameCell.className = 'hm-name';
+    nameCell.textContent = m.name;
+    row.appendChild(nameCell);
+
+    m.vals.forEach(function(v) {
+      var cell = document.createElement('div');
+      cell.className = 'hm-cell';
+      var bar = document.createElement('div');
+      bar.className = 'hm-bar';
+      bar.style.background = valToColor(v);
+      bar.style.height = Math.min(rowHeight - 10, 28) + 'px';
+      cell.appendChild(bar);
+      row.appendChild(cell);
+    });
+    body.appendChild(row);
+  });
+}
+
+function selectMetabolite(idx) {
+  selectedRow = idx;
+  renderHeatmap();
+  var m = metabolites[idx];
+  document.getElementById('detailBody').innerHTML =
+    '<div class="detail-metabolite-name">' + m.name + '</div>' +
+    '<div class="detail-img-card">' +
+      '<div class="detail-img-label">Spatial Distribution</div>' +
+      '<div class="detail-img-placeholder" style="background:#f3f4f6;border:none;">' +
+        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="#d1d5db"/><circle cx="9" cy="12" r="1.2" fill="#d1d5db"/><circle cx="13" cy="15" r="1.2" fill="#d1d5db"/><circle cx="17" cy="7" r="1.2" fill="#d1d5db"/><circle cx="7" cy="9" r="1.2" fill="#d1d5db"/><circle cx="15" cy="11" r="1.2" fill="#d1d5db"/><circle cx="11" cy="5" r="1.2" fill="#d1d5db"/><circle cx="19" cy="14" r="1.2" fill="#d1d5db"/></svg>' +
+      '</div>' +
+    '</div>' +
+    '<div class="detail-img-card">' +
+      '<div class="detail-img-label">Quantification Bar Chart</div>' +
+      '<div class="detail-img-placeholder" style="background:#f3f4f6;border:none;">' +
+        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5"><rect x="3" y="12" width="4" height="9" fill="#d1d5db" stroke="none" rx="1"/><rect x="10" y="7" width="4" height="14" fill="#d1d5db" stroke="none" rx="1"/><rect x="17" y="4" width="4" height="17" fill="#d1d5db" stroke="none" rx="1"/></svg>' +
+      '</div>' +
+    '</div>';
+}
+
+// ── Spatial Transcriptomics gene list ───────────────
+var allGenes = ['AADAC','APOA1','APOA4','ATOH1','BEST4','CDH1','CEACAM5','CHGA','CHGB','CLCA1',
+  'DCLK1','EPCAM','GKN3','HHEX','HMGB2','HOPX','LGR5','LYZ','MKI67','MUC2',
+  'MUC5AC','NEUROD1','NTS','OLFM4','PCNA','PRSS1','REG1A','REG1B','REG3A','REG3G',
+  'SCT','SI','SLC26A3','SLC5A1','SPDEF','TFF1','TFF2','TFF3','TOP2A','VIM',
+  'ZG16','GPA33','KRT20','CDX2','FABP1','SLC15A1','FABP2','ANPEP','HPGDS','ALDOB'];
+
+var closeTimer;
+var selectedGene = null;
+
+function filterGenes() {
+  var val = document.getElementById('geneSearch').value.toLowerCase();
+  var dropdown = document.getElementById('geneDropdown');
+  var matches = allGenes.filter(function(g) { return g.toLowerCase().indexOf(val) > -1; });
+  dropdown.innerHTML = '';
+  matches.slice(0, 12).forEach(function(g) {
+    var item = document.createElement('div');
+    item.className = 'dropdown-item';
+    item.textContent = g;
+    item.onmousedown = function() { selectGeneItem(g); };
+    dropdown.appendChild(item);
+  });
+  if (matches.length > 12) {
+    var more = document.createElement('div');
+    more.className = 'dropdown-item';
+    more.style.color = 'var(--light)';
+    more.style.cursor = 'default';
+    more.textContent = '+ ' + (matches.length - 12) + ' more…';
+    dropdown.appendChild(more);
+  }
+  dropdown.classList.toggle('open', val.length > 0 && matches.length > 0);
+}
+
+function openDropdown() {
+  clearTimeout(closeTimer);
+  filterGenes();
+}
+
+function closeDropdownDelay() {
+  closeTimer = setTimeout(function() {
+    document.getElementById('geneDropdown').classList.remove('open');
+  }, 200);
+}
+
+function selectGeneItem(gene) {
+  selectedGene = gene;
+  document.getElementById('geneSearch').value = gene;
+  document.getElementById('geneDropdown').classList.remove('open');
+}
+
+function applyGeneSearch() {
+  var val = document.getElementById('geneSearch').value.trim().toUpperCase();
+  if (!val) {
+    var inp = document.getElementById('geneSearch');
+    inp.style.borderColor = 'var(--accent)'; inp.focus();
+    setTimeout(function() { inp.style.borderColor = ''; }, 1400); return;
+  }
+  // Match to known gene list (case-insensitive)
+  var match = allGenes.filter(function(g) { return g.toUpperCase() === val; })[0] || val;
+  selectedGene = match;
+  document.getElementById('geneSearch').value = match;
+  // geneResultTitle removed
+  document.getElementById('geneTitleDuodenum').textContent = 'Feature Plot — ' + match + ' · Duodenum';
+  document.getElementById('geneTitleColon').textContent = 'Feature Plot — ' + match + ' · Colon';
+  document.getElementById('geneLabelDuodenum').textContent = match + ' spatial expression · Duodenum';
+  document.getElementById('geneLabelColon').textContent = match + ' spatial expression · Colon';
+  document.getElementById('txGeneEmpty').style.display = 'none';
+  document.getElementById('txGeneResult').style.display = '';
+}
+
+// ── Tab switching ───────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-link').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  document.querySelectorAll('.tab-pane').forEach(function(p) {
+    p.classList.toggle('active', p.id === 'pane-' + name);
+  });
+}
+
+// ── Modality switching ───────────────────────────────
+function switchModality(mod) {
+  window.location.hash = mod;
+  var isMetabo = mod === 'metabolomics';
+  document.getElementById('metabo-view').style.display = isMetabo ? '' : 'none';
+  document.getElementById('tx-view').style.display = isMetabo ? 'none' : '';
+  var navMetabo = document.getElementById('navMetabo');
+  var navTx = document.getElementById('navTx');
+  if (navMetabo) navMetabo.classList.toggle('active', isMetabo);
+  if (navTx) navTx.classList.toggle('active', !isMetabo);
+  if (!isMetabo) {
+    switchTab('overview');
+    if (selectedGene) {
+      // geneResultTitle removed
+      document.getElementById('geneTitleDuodenum').textContent = 'Feature Plot — ' + selectedGene + ' · Duodenum';
+      document.getElementById('geneTitleColon').textContent = 'Feature Plot — ' + selectedGene + ' · Colon';
+      document.getElementById('txGeneEmpty').style.display = 'none';
+      document.getElementById('txGeneResult').style.display = '';
+      switchTab('gene-expr');
+    }
+  }
+}
+
+// Init
+renderHeatmap();
+document.addEventListener('DOMContentLoaded', function() {
+  var hash = window.location.hash.replace('#','');
+  switchModality(hash === 'transcriptomics' ? 'transcriptomics' : 'metabolomics');
+});
+</script>
+
+<!-- Browser modal + iframe detection -->
+<div id="bModal" class="bmodal-overlay" onclick="if(event.target===this)closeBModal()">
+  <div class="bmodal-box">
+    <div class="bmodal-bar">
+      <span class="bmodal-bar-title" id="bModalTitle"></span>
+      <button class="bmodal-close" onclick="closeBModal()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <iframe id="bModalFrame" class="bmodal-frame" src=""></iframe>
+  </div>
+</div>
+<script>
+// Hide header/footer when embedded in a modal iframe
+if (window.self !== window.top) {
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('header, footer, .footer-copyright, .page-hero').forEach(function(el) { el.style.display = 'none'; });
+    var vl = document.querySelector('.viewer-layout'); if (vl) vl.style.paddingTop = '20px';
+  });
+}
+function openBModal(src,title){document.getElementById('bModalTitle').textContent=title;document.getElementById('bModalFrame').src=src;document.getElementById('bModal').classList.add('open');document.body.style.overflow='hidden';}
+function closeBModal(){document.getElementById('bModal').classList.remove('open');document.getElementById('bModalFrame').src='';document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeBModal();});
+</script>
+</body>
+</html>
