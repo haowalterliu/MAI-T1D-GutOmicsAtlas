@@ -118,13 +118,65 @@
 /* ── Metabolomics-specific ── */
 .metabo-layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 16px;
+  grid-template-columns: 1fr 460px;
+  gap: 20px;
   align-items: start;
 }
 
 /* Heatmap left column */
 .heatmap-col { display: flex; flex-direction: column; min-width: 0; }
+
+.heatmap-chart-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy);
+  font-family: 'Montserrat', sans-serif;
+  margin-bottom: 10px;
+}
+
+/* Horizontal color scale legend */
+.hm-legend-wrap {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+.hm-legend-title {
+  font-size: 0.6rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.3px;
+}
+.hm-legend-bar {
+  width: 120px;
+  height: 10px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #1d4ed8, #60a5fa, #bfdbfe, #e5e7eb, #fca5a5, #fb7185, #de3341);
+}
+.hm-legend-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 120px;
+  font-size: 0.58rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Detail panel chart-card height override */
+.detail-col .chart-body { min-height: 200px; }
+.detail-metabolite-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 2px;
+}
+.detail-mz {
+  font-size: 0.72rem;
+  color: var(--light);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 14px;
+}
 
 .zoom-row {
   display: flex;
@@ -244,7 +296,7 @@
   font-weight: 700;
   color: var(--navy);
 }
-.detail-card-body { padding: 18px; }
+.detail-card-body { padding: 0; }
 
 .detail-empty {
   display: flex;
@@ -523,10 +575,15 @@
 
         <!-- Left: zoom + scrollable heatmap -->
         <div class="heatmap-col">
+          <div class="heatmap-chart-title">Metabolite Heatmap — Log₂FC (Duodenum/Colon)</div>
           <div class="zoom-row">
             <button class="zoom-btn-sq" onclick="adjustZoom(1)" title="Zoom in">+</button>
             <button class="zoom-btn-sq" onclick="adjustZoom(-1)" title="Zoom out">−</button>
-            <span style="font-size:0.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-left:4px;">Metabolite Heatmap — Log₂FC (Duodenum/Colon)</span>
+            <div class="hm-legend-wrap">
+              <div class="hm-legend-title">Log₂FC</div>
+              <div class="hm-legend-bar"></div>
+              <div class="hm-legend-labels"><span>−5</span><span>0</span><span>+5</span></div>
+            </div>
           </div>
           <div class="heatmap-scroll" id="heatmapScroll">
             <div class="hm-header-row">
@@ -541,10 +598,10 @@
 
         <!-- Right: fixed detail panel -->
         <div class="detail-col">
-          <div class="detail-card">
-            <div class="detail-card-header">
-              <span class="detail-card-title">Metabolite Detail</span>
-              </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title">Metabolite Detail</div>
+            </div>
             <div class="detail-card-body" id="detailBody">
               <div class="detail-empty">
                 <div class="detail-empty-icon">🧪</div>
@@ -816,20 +873,21 @@ function selectMetabolite(idx) {
   selectedRow = idx;
   renderHeatmap();
   var m = metabolites[idx];
+  var SCATTER = '<div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="#d1d5db"/><circle cx="9" cy="12" r="1.2" fill="#d1d5db"/><circle cx="13" cy="15" r="1.2" fill="#d1d5db"/><circle cx="17" cy="7" r="1.2" fill="#d1d5db"/><circle cx="7" cy="9" r="1.2" fill="#d1d5db"/><circle cx="15" cy="11" r="1.2" fill="#d1d5db"/><circle cx="11" cy="5" r="1.2" fill="#d1d5db"/><circle cx="19" cy="14" r="1.2" fill="#d1d5db"/></svg></div>';
+  var BAR = '<div class="chart-ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5"><rect x="3" y="12" width="4" height="9" fill="#d1d5db" stroke="none" rx="1"/><rect x="10" y="7" width="4" height="14" fill="#d1d5db" stroke="none" rx="1"/><rect x="17" y="4" width="4" height="17" fill="#d1d5db" stroke="none" rx="1"/></svg></div>';
   document.getElementById('detailBody').innerHTML =
-    '<div class="detail-metabolite-name">' + m.name + '</div>' +
-    '<div class="detail-img-card">' +
-      '<div class="detail-img-label">Spatial Distribution</div>' +
-      '<div class="detail-img-placeholder" style="background:#f3f4f6;border:none;">' +
-        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.2"><circle cx="5" cy="18" r="1.2" fill="#d1d5db"/><circle cx="9" cy="12" r="1.2" fill="#d1d5db"/><circle cx="13" cy="15" r="1.2" fill="#d1d5db"/><circle cx="17" cy="7" r="1.2" fill="#d1d5db"/><circle cx="7" cy="9" r="1.2" fill="#d1d5db"/><circle cx="15" cy="11" r="1.2" fill="#d1d5db"/><circle cx="11" cy="5" r="1.2" fill="#d1d5db"/><circle cx="19" cy="14" r="1.2" fill="#d1d5db"/></svg>' +
-      '</div>' +
+    '<div style="padding:16px 18px 4px;">' +
+      '<div class="detail-metabolite-name">' + m.name + '</div>' +
+      '<div class="detail-mz">m/z ' + m.mz + '</div>' +
     '</div>' +
-    '<div class="detail-img-card">' +
-      '<div class="detail-img-label">Quantification Bar Chart</div>' +
-      '<div class="detail-img-placeholder" style="background:#f3f4f6;border:none;">' +
-        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5"><rect x="3" y="12" width="4" height="9" fill="#d1d5db" stroke="none" rx="1"/><rect x="10" y="7" width="4" height="14" fill="#d1d5db" stroke="none" rx="1"/><rect x="17" y="4" width="4" height="17" fill="#d1d5db" stroke="none" rx="1"/></svg>' +
-      '</div>' +
-    '</div>';
+    '<div style="border-top:1px solid var(--border);"><div class="chart-card-header" style="background:var(--surface2);"><div class="chart-title">Spatial Distribution</div></div>' +
+    '<div class="chart-body"><div class="chart-placeholder">' + SCATTER +
+      '<div class="chart-ph-text">' + m.name + ' · spatial distribution</div>' +
+    '</div></div></div>' +
+    '<div style="border-top:1px solid var(--border);"><div class="chart-card-header" style="background:var(--surface2);"><div class="chart-title">Quantification</div></div>' +
+    '<div class="chart-body"><div class="chart-placeholder">' + BAR +
+      '<div class="chart-ph-text">' + m.name + ' · Duodenum vs Colon</div>' +
+    '</div></div></div>';
 }
 
 // ── Spatial Transcriptomics gene list ───────────────
