@@ -115,6 +115,24 @@
   margin-bottom: 24px;
 }
 
+/* ── Spatial Transcriptomics two-column layout ── */
+.tx-pvs {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.tx-pvs-left { position: sticky; top: 80px; }
+.tx-pvs-left .page-eyebrow { margin-bottom: 14px; }
+.tx-pvs-left .pvs-title { font-size: 1.4rem; font-weight: 700; color: var(--navy); margin: 0 0 10px; font-family: 'Montserrat', sans-serif; line-height: 1.3; }
+.tx-pvs-left .pvs-desc { font-size: .82rem; color: var(--muted); line-height: 1.65; font-family: 'Montserrat', sans-serif; }
+.tx-pvs-right { min-width: 0; }
+.tx-pvs-right .two-col-grid { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .tx-pvs { grid-template-columns: 1fr; }
+  .tx-pvs-left { position: static; }
+}
+
 /* ── Metabolomics-specific ── */
 .metabo-layout {
   display: grid;
@@ -556,13 +574,6 @@
   </nav>
 </header>
 
-<!-- PAGE HERO -->
-<div class="page-hero">
-  <div class="page-eyebrow"><span class="eyebrow-line"></span>Spatial Omics</div>
-  <h1 class="page-h1">Spatial Browser</h1>
-  <p class="page-desc">Explore metabolite spatial distribution (MALDI imaging) and spatial gene expression (Visium) across fetal gut tissue sections. Use the Spatial Modality menu to switch between Spatial Metabolomics and Spatial Transcriptomics.</p>
-</div>
-
 <!-- VIEWER LAYOUT -->
 <div class="viewer-layout">
 
@@ -571,6 +582,13 @@
 
     <!-- ══ SPATIAL METABOLOMICS view ══ -->
     <div id="metabo-view">
+      <div class="tx-pvs">
+        <div class="tx-pvs-left">
+          <div class="page-eyebrow"><span class="eyebrow-line"></span>Spatial Omics</div>
+          <h2 class="pvs-title">Spatial Metabolomics</h2>
+          <p class="pvs-desc">Metabolite spatial distribution (MALDI imaging) across fetal gut tissue sections. Explore metabolite expression and quantification across Duodenum and Colon.</p>
+        </div>
+        <div class="tx-pvs-right">
       <div class="metabo-layout">
 
         <!-- Left: zoom + scrollable heatmap -->
@@ -600,7 +618,7 @@
         <div class="detail-col">
           <div class="chart-card">
             <div class="chart-card-header">
-              <div class="chart-title">Metabolite Detail</div>
+              <div class="chart-title">Spatial Metabolomics · Metabolite Detail</div>
             </div>
             <div class="detail-card-body" id="detailBody">
               <div class="detail-empty">
@@ -612,10 +630,19 @@
         </div>
 
       </div><!-- end metabo-layout -->
+        </div><!-- end tx-pvs-right -->
+      </div><!-- end tx-pvs -->
     </div><!-- end metabo-view -->
 
     <!-- ══ SPATIAL TRANSCRIPTOMICS view ══ -->
     <div id="tx-view" style="display:none;">
+      <div class="tx-pvs">
+        <div class="tx-pvs-left">
+          <div class="page-eyebrow"><span class="eyebrow-line"></span>Spatial Omics</div>
+          <h2 class="pvs-title">Spatial Transcriptomics</h2>
+          <p class="pvs-desc">Spatial gene expression (Visium) across fetal gut duodenum and colon tissue sections. Explore cell type distributions and individual gene expression patterns.</p>
+        </div>
+        <div class="tx-pvs-right">
 
       <div class="tabs-bar">
         <button class="tab-link active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
@@ -628,7 +655,7 @@
         <div class="two-col-grid">
           <div class="chart-card">
             <div class="chart-card-header">
-              <div class="chart-title">UMAP — All Cells</div>
+              <div class="chart-title">Spatial TX · Overview · UMAP</div>
             </div>
             <div class="chart-body">
               <div class="chart-placeholder">
@@ -640,13 +667,13 @@
                     <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
                   </svg>
                 </div>
-                <div class="chart-placeholder-text">UMAP · spatial transcriptomics clusters</div>
+                <div class="chart-ph-text">Spatial TX · Overview · UMAP</div>
               </div>
             </div>
           </div>
           <div class="chart-card">
             <div class="chart-card-header">
-              <div class="chart-title">Dot Plot — Marker Genes</div>
+              <div class="chart-title">Spatial TX · Overview · Dot Plot</div>
             </div>
             <div class="chart-body">
               <div class="chart-placeholder">
@@ -658,7 +685,7 @@
                     <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
                   </svg>
                 </div>
-                <div class="chart-placeholder-text">Dot plot · fixed marker gene panel</div>
+                <div class="chart-ph-text">Spatial TX · Overview · Dot Plot</div>
               </div>
             </div>
           </div>
@@ -670,7 +697,7 @@
         <div class="two-col-grid">
           <div class="chart-card">
             <div class="chart-card-header">
-              <div class="chart-title">Duodenum — Cell Distribution</div>
+              <div class="chart-title">Spatial TX · Spatial Area · Duodenum · Cell Distribution</div>
             </div>
             <div class="chart-body">
               <div class="chart-placeholder">
@@ -682,13 +709,13 @@
                     <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
                   </svg>
                 </div>
-                <div class="chart-placeholder-text">Spatial cell distribution · Duodenum</div>
+                <div class="chart-ph-text">Spatial TX · Spatial Area · Duodenum · Cell Distribution</div>
               </div>
             </div>
           </div>
           <div class="chart-card">
             <div class="chart-card-header">
-              <div class="chart-title">Colon — Cell Distribution</div>
+              <div class="chart-title">Spatial TX · Spatial Area · Colon · Cell Distribution</div>
             </div>
             <div class="chart-body">
               <div class="chart-placeholder">
@@ -700,7 +727,7 @@
                     <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
                   </svg>
                 </div>
-                <div class="chart-placeholder-text">Spatial cell distribution · Colon</div>
+                <div class="chart-ph-text">Spatial TX · Spatial Area · Colon · Cell Distribution</div>
               </div>
             </div>
           </div>
@@ -735,7 +762,7 @@
                 <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
               </svg>
             </div>
-            <div class="chart-placeholder-text">Search a gene above to view its spatial expression in Duodenum and Colon</div>
+            <div class="chart-ph-text">Search a gene above to view its spatial expression in Duodenum and Colon</div>
           </div>
         </div>
 
@@ -744,7 +771,7 @@
           <div class="two-col-grid">
             <div class="chart-card">
               <div class="chart-card-header">
-                <div class="chart-title" id="geneTitleDuodenum">Feature Plot — Duodenum</div>
+                <div class="chart-title" id="geneTitleDuodenum">Spatial TX · Gene Expression · Duodenum · Feature Plot</div>
               </div>
               <div class="chart-body">
                 <div class="chart-placeholder">
@@ -756,13 +783,13 @@
                       <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
                     </svg>
                   </div>
-                  <div class="chart-ph-text" id="geneLabelDuodenum">Spatial expression · Duodenum</div>
+                  <div class="chart-ph-text" id="geneLabelDuodenum">Spatial TX · Gene Expression · Duodenum · Feature Plot</div>
                 </div>
               </div>
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <div class="chart-title" id="geneTitleColon">Feature Plot — Colon</div>
+                <div class="chart-title" id="geneTitleColon">Spatial TX · Gene Expression · Colon · Feature Plot</div>
               </div>
               <div class="chart-body">
                 <div class="chart-placeholder">
@@ -774,7 +801,7 @@
                       <circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="19" cy="14" r="1.2" fill="currentColor"/>
                     </svg>
                   </div>
-                  <div class="chart-ph-text" id="geneLabelColon">Spatial expression · Colon</div>
+                  <div class="chart-ph-text" id="geneLabelColon">Spatial TX · Gene Expression · Colon · Feature Plot</div>
                 </div>
               </div>
             </div>
@@ -783,6 +810,8 @@
 
       </div><!-- end pane-gene-expr -->
 
+        </div><!-- end tx-pvs-right -->
+      </div><!-- end tx-pvs -->
     </div><!-- end tx-view -->
 
   </div><!-- end viewer-main -->
@@ -880,13 +909,13 @@ function selectMetabolite(idx) {
       '<div class="detail-metabolite-name">' + m.name + '</div>' +
       '<div class="detail-mz">m/z ' + m.mz + '</div>' +
     '</div>' +
-    '<div style="border-top:1px solid var(--border);"><div class="chart-card-header" style="background:var(--surface2);"><div class="chart-title">Spatial Distribution</div></div>' +
+    '<div style="border-top:1px solid var(--border);"><div class="chart-card-header" style="background:var(--surface2);"><div class="chart-title">Spatial Metabolomics · ' + m.name + ' · Spatial Distribution</div></div>' +
     '<div class="chart-body"><div class="chart-placeholder">' + SCATTER +
-      '<div class="chart-ph-text">' + m.name + ' · spatial distribution</div>' +
+      '<div class="chart-ph-text">Spatial Metabolomics · ' + m.name + ' · Spatial Distribution</div>' +
     '</div></div></div>' +
-    '<div style="border-top:1px solid var(--border);"><div class="chart-card-header" style="background:var(--surface2);"><div class="chart-title">Quantification</div></div>' +
+    '<div style="border-top:1px solid var(--border);"><div class="chart-card-header" style="background:var(--surface2);"><div class="chart-title">Spatial Metabolomics · ' + m.name + ' · Quantification</div></div>' +
     '<div class="chart-body"><div class="chart-placeholder">' + BAR +
-      '<div class="chart-ph-text">' + m.name + ' · Duodenum vs Colon</div>' +
+      '<div class="chart-ph-text">Spatial Metabolomics · ' + m.name + ' · Quantification</div>' +
     '</div></div></div>';
 }
 
@@ -952,10 +981,10 @@ function applyGeneSearch() {
   selectedGene = match;
   document.getElementById('geneSearch').value = match;
   // geneResultTitle removed
-  document.getElementById('geneTitleDuodenum').textContent = 'Feature Plot — ' + match + ' · Duodenum';
-  document.getElementById('geneTitleColon').textContent = 'Feature Plot — ' + match + ' · Colon';
-  document.getElementById('geneLabelDuodenum').textContent = match + ' spatial expression · Duodenum';
-  document.getElementById('geneLabelColon').textContent = match + ' spatial expression · Colon';
+  document.getElementById('geneTitleDuodenum').textContent = 'Spatial TX · Gene Expression · Duodenum · Feature Plot · ' + match;
+  document.getElementById('geneTitleColon').textContent = 'Spatial TX · Gene Expression · Colon · Feature Plot · ' + match;
+  document.getElementById('geneLabelDuodenum').textContent = 'Spatial TX · Gene Expression · Duodenum · Feature Plot · ' + match;
+  document.getElementById('geneLabelColon').textContent = 'Spatial TX · Gene Expression · Colon · Feature Plot · ' + match;
   document.getElementById('txGeneEmpty').style.display = 'none';
   document.getElementById('txGeneResult').style.display = '';
 }
@@ -984,8 +1013,8 @@ function switchModality(mod) {
     switchTab('overview');
     if (selectedGene) {
       // geneResultTitle removed
-      document.getElementById('geneTitleDuodenum').textContent = 'Feature Plot — ' + selectedGene + ' · Duodenum';
-      document.getElementById('geneTitleColon').textContent = 'Feature Plot — ' + selectedGene + ' · Colon';
+      document.getElementById('geneTitleDuodenum').textContent = 'Spatial TX · Gene Expression · Duodenum · Feature Plot · ' + selectedGene;
+      document.getElementById('geneTitleColon').textContent = 'Spatial TX · Gene Expression · Colon · Feature Plot · ' + selectedGene;
       document.getElementById('txGeneEmpty').style.display = 'none';
       document.getElementById('txGeneResult').style.display = '';
       switchTab('gene-expr');
